@@ -1,0 +1,14 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+define(["require", "exports", "vs/platform/accessibilitySignal/browser/accessibilitySignalService", "vs/platform/actions/common/actions", "vs/platform/instantiation/common/extensions", "vs/workbench/common/contributions", "vs/workbench/contrib/accessibilitySignals/browser/accessibilitySignalDebuggerContribution", "vs/workbench/contrib/accessibilitySignals/browser/commands", "vs/workbench/contrib/accessibilitySignals/browser/editorTextPropertySignalsContribution", "vs/workbench/contrib/accessibilitySignals/browser/reloadableWorkbenchContribution"], function (require, exports, accessibilitySignalService_1, actions_1, extensions_1, contributions_1, accessibilitySignalDebuggerContribution_1, commands_1, editorTextPropertySignalsContribution_1, reloadableWorkbenchContribution_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    (0, extensions_1.registerSingleton)(accessibilitySignalService_1.IAccessibilitySignalService, accessibilitySignalService_1.AccessibilitySignalService, 1 /* InstantiationType.Delayed */);
+    (0, contributions_1.registerWorkbenchContribution2)('EditorTextPropertySignalsContribution', (0, reloadableWorkbenchContribution_1.wrapInReloadableClass)(() => editorTextPropertySignalsContribution_1.EditorTextPropertySignalsContribution), 3 /* WorkbenchPhase.AfterRestored */);
+    (0, contributions_1.registerWorkbenchContribution2)('AccessibilitySignalLineDebuggerContribution', accessibilitySignalDebuggerContribution_1.AccessibilitySignalLineDebuggerContribution, 3 /* WorkbenchPhase.AfterRestored */);
+    (0, actions_1.registerAction2)(commands_1.ShowSignalSoundHelp);
+    (0, actions_1.registerAction2)(commands_1.ShowAccessibilityAnnouncementHelp);
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYWNjZXNzaWJpbGl0eVNpZ25hbC5jb250cmlidXRpb24uanMiLCJzb3VyY2VSb290IjoiZmlsZTovLy9ob21lL3N0YXJrL3ZzY29kZS1zdGF0aWMtd2ViL3RoaXJkX3BhcnR5L3ZzY29kZS9zcmMvIiwic291cmNlcyI6WyJ2cy93b3JrYmVuY2gvY29udHJpYi9hY2Nlc3NpYmlsaXR5U2lnbmFscy9icm93c2VyL2FjY2Vzc2liaWxpdHlTaWduYWwuY29udHJpYnV0aW9uLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBOzs7Z0dBR2dHOzs7O0lBV2hHLElBQUEsOEJBQWlCLEVBQUMsd0RBQTJCLEVBQUUsdURBQTBCLG9DQUE0QixDQUFDO0lBRXRHLElBQUEsOENBQThCLEVBQUMsdUNBQXVDLEVBQUUsSUFBQSx1REFBcUIsRUFBQyxHQUFHLEVBQUUsQ0FBQyw2RUFBcUMsQ0FBQyx1Q0FBK0IsQ0FBQztJQUMxSyxJQUFBLDhDQUE4QixFQUFDLDZDQUE2QyxFQUFFLHFGQUEyQyx1Q0FBK0IsQ0FBQztJQUV6SixJQUFBLHlCQUFlLEVBQUMsOEJBQW1CLENBQUMsQ0FBQztJQUNyQyxJQUFBLHlCQUFlLEVBQUMsNENBQWlDLENBQUMsQ0FBQyJ9

@@ -1,0 +1,12 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+define(["require", "exports", "vs/workbench/common/contributions", "vs/workbench/contrib/terminal/browser/terminalExtensions", "vs/workbench/contrib/terminalContrib/chat/browser/terminalChatAccessibleView", "vs/workbench/contrib/terminalContrib/chat/browser/terminalChatController", "vs/workbench/contrib/terminalContrib/chat/browser/terminalChatAccessibilityHelp", "vs/workbench/contrib/terminalContrib/chat/browser/terminalChatActions"], function (require, exports, contributions_1, terminalExtensions_1, terminalChatAccessibleView_1, terminalChatController_1, terminalChatAccessibilityHelp_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    (0, terminalExtensions_1.registerTerminalContribution)(terminalChatController_1.TerminalChatController.ID, terminalChatController_1.TerminalChatController, false);
+    (0, contributions_1.registerWorkbenchContribution2)(terminalChatAccessibleView_1.TerminalInlineChatAccessibleViewContribution.ID, terminalChatAccessibleView_1.TerminalInlineChatAccessibleViewContribution, 4 /* WorkbenchPhase.Eventually */);
+    (0, contributions_1.registerWorkbenchContribution2)(terminalChatAccessibilityHelp_1.TerminalChatAccessibilityHelpContribution.ID, terminalChatAccessibilityHelp_1.TerminalChatAccessibilityHelpContribution, 4 /* WorkbenchPhase.Eventually */);
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidGVybWluYWwuY2hhdC5jb250cmlidXRpb24uanMiLCJzb3VyY2VSb290IjoiZmlsZTovLy9ob21lL3N0YXJrL3ZzY29kZS1zdGF0aWMtd2ViL3RoaXJkX3BhcnR5L3ZzY29kZS9zcmMvIiwic291cmNlcyI6WyJ2cy93b3JrYmVuY2gvY29udHJpYi90ZXJtaW5hbENvbnRyaWIvY2hhdC9icm93c2VyL3Rlcm1pbmFsLmNoYXQuY29udHJpYnV0aW9uLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBOzs7Z0dBR2dHOzs7O0lBVWhHLElBQUEsaURBQTRCLEVBQUMsK0NBQXNCLENBQUMsRUFBRSxFQUFFLCtDQUFzQixFQUFFLEtBQUssQ0FBQyxDQUFDO0lBRXZGLElBQUEsOENBQThCLEVBQUMseUVBQTRDLENBQUMsRUFBRSxFQUFFLHlFQUE0QyxvQ0FBNEIsQ0FBQztJQUN6SixJQUFBLDhDQUE4QixFQUFDLHlFQUF5QyxDQUFDLEVBQUUsRUFBRSx5RUFBeUMsb0NBQTRCLENBQUMifQ==

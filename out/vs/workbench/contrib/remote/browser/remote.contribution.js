@@ -1,0 +1,19 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+define(["require", "exports", "vs/workbench/common/contributions", "vs/platform/registry/common/platform", "vs/workbench/contrib/remote/browser/showCandidate", "vs/workbench/contrib/remote/browser/tunnelFactory", "vs/workbench/contrib/remote/browser/remote", "vs/workbench/contrib/remote/browser/remoteIndicator", "vs/workbench/contrib/remote/browser/remoteExplorer", "vs/workbench/contrib/remote/browser/remoteConnectionHealth"], function (require, exports, contributions_1, platform_1, showCandidate_1, tunnelFactory_1, remote_1, remoteIndicator_1, remoteExplorer_1, remoteConnectionHealth_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const workbenchContributionsRegistry = platform_1.Registry.as(contributions_1.Extensions.Workbench);
+    (0, contributions_1.registerWorkbenchContribution2)(showCandidate_1.ShowCandidateContribution.ID, showCandidate_1.ShowCandidateContribution, 2 /* WorkbenchPhase.BlockRestore */);
+    (0, contributions_1.registerWorkbenchContribution2)(tunnelFactory_1.TunnelFactoryContribution.ID, tunnelFactory_1.TunnelFactoryContribution, 2 /* WorkbenchPhase.BlockRestore */);
+    workbenchContributionsRegistry.registerWorkbenchContribution(remote_1.RemoteAgentConnectionStatusListener, 4 /* LifecyclePhase.Eventually */);
+    (0, contributions_1.registerWorkbenchContribution2)(remoteIndicator_1.RemoteStatusIndicator.ID, remoteIndicator_1.RemoteStatusIndicator, 1 /* WorkbenchPhase.BlockStartup */);
+    workbenchContributionsRegistry.registerWorkbenchContribution(remoteExplorer_1.ForwardedPortsView, 3 /* LifecyclePhase.Restored */);
+    workbenchContributionsRegistry.registerWorkbenchContribution(remoteExplorer_1.PortRestore, 4 /* LifecyclePhase.Eventually */);
+    workbenchContributionsRegistry.registerWorkbenchContribution(remoteExplorer_1.AutomaticPortForwarding, 4 /* LifecyclePhase.Eventually */);
+    workbenchContributionsRegistry.registerWorkbenchContribution(remote_1.RemoteMarkers, 4 /* LifecyclePhase.Eventually */);
+    workbenchContributionsRegistry.registerWorkbenchContribution(remoteConnectionHealth_1.InitialRemoteConnectionHealthContribution, 3 /* LifecyclePhase.Restored */);
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVtb3RlLmNvbnRyaWJ1dGlvbi5qcyIsInNvdXJjZVJvb3QiOiJmaWxlOi8vL2hvbWUvc3RhcmsvdnNjb2RlLXN0YXRpYy13ZWIvdGhpcmRfcGFydHkvdnNjb2RlL3NyYy8iLCJzb3VyY2VzIjpbInZzL3dvcmtiZW5jaC9jb250cmliL3JlbW90ZS9icm93c2VyL3JlbW90ZS5jb250cmlidXRpb24udHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUE7OztnR0FHZ0c7Ozs7SUFZaEcsTUFBTSw4QkFBOEIsR0FBRyxtQkFBUSxDQUFDLEVBQUUsQ0FBa0MsMEJBQW1CLENBQUMsU0FBUyxDQUFDLENBQUM7SUFDbkgsSUFBQSw4Q0FBOEIsRUFBQyx5Q0FBeUIsQ0FBQyxFQUFFLEVBQUUseUNBQXlCLHNDQUE4QixDQUFDO0lBQ3JILElBQUEsOENBQThCLEVBQUMseUNBQXlCLENBQUMsRUFBRSxFQUFFLHlDQUF5QixzQ0FBOEIsQ0FBQztJQUNySCw4QkFBOEIsQ0FBQyw2QkFBNkIsQ0FBQyw0Q0FBbUMsb0NBQTRCLENBQUM7SUFDN0gsSUFBQSw4Q0FBOEIsRUFBQyx1Q0FBcUIsQ0FBQyxFQUFFLEVBQUUsdUNBQXFCLHNDQUE4QixDQUFDO0lBQzdHLDhCQUE4QixDQUFDLDZCQUE2QixDQUFDLG1DQUFrQixrQ0FBMEIsQ0FBQztJQUMxRyw4QkFBOEIsQ0FBQyw2QkFBNkIsQ0FBQyw0QkFBVyxvQ0FBNEIsQ0FBQztJQUNyRyw4QkFBOEIsQ0FBQyw2QkFBNkIsQ0FBQyx3Q0FBdUIsb0NBQTRCLENBQUM7SUFDakgsOEJBQThCLENBQUMsNkJBQTZCLENBQUMsc0JBQWEsb0NBQTRCLENBQUM7SUFDdkcsOEJBQThCLENBQUMsNkJBQTZCLENBQUMsa0VBQXlDLGtDQUEwQixDQUFDIn0=

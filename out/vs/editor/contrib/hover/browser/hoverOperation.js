@@ -1,0 +1,169 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+define(["require", "exports", "vs/base/common/async", "vs/base/common/errors", "vs/base/common/event", "vs/base/common/lifecycle"], function (require, exports, async_1, errors_1, event_1, lifecycle_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.HoverOperation = exports.HoverResult = exports.HoverStartSource = exports.HoverStartMode = void 0;
+    var HoverOperationState;
+    (function (HoverOperationState) {
+        HoverOperationState[HoverOperationState["Idle"] = 0] = "Idle";
+        HoverOperationState[HoverOperationState["FirstWait"] = 1] = "FirstWait";
+        HoverOperationState[HoverOperationState["SecondWait"] = 2] = "SecondWait";
+        HoverOperationState[HoverOperationState["WaitingForAsync"] = 3] = "WaitingForAsync";
+        HoverOperationState[HoverOperationState["WaitingForAsyncShowingLoading"] = 4] = "WaitingForAsyncShowingLoading";
+    })(HoverOperationState || (HoverOperationState = {}));
+    var HoverStartMode;
+    (function (HoverStartMode) {
+        HoverStartMode[HoverStartMode["Delayed"] = 0] = "Delayed";
+        HoverStartMode[HoverStartMode["Immediate"] = 1] = "Immediate";
+    })(HoverStartMode || (exports.HoverStartMode = HoverStartMode = {}));
+    var HoverStartSource;
+    (function (HoverStartSource) {
+        HoverStartSource[HoverStartSource["Mouse"] = 0] = "Mouse";
+        HoverStartSource[HoverStartSource["Keyboard"] = 1] = "Keyboard";
+    })(HoverStartSource || (exports.HoverStartSource = HoverStartSource = {}));
+    class HoverResult {
+        constructor(value, isComplete, hasLoadingMessage) {
+            this.value = value;
+            this.isComplete = isComplete;
+            this.hasLoadingMessage = hasLoadingMessage;
+        }
+    }
+    exports.HoverResult = HoverResult;
+    /**
+     * Computing the hover is very fine tuned.
+     *
+     * Suppose the hover delay is 300ms (the default). Then, when resting the mouse at an anchor:
+     * - at 150ms, the async computation is triggered (i.e. semantic hover)
+     *   - if async results already come in, they are not rendered yet.
+     * - at 300ms, the sync computation is triggered (i.e. decorations, markers)
+     *   - if there are sync or async results, they are rendered.
+     * - at 900ms, if the async computation hasn't finished, a "Loading..." result is added.
+     */
+    class HoverOperation extends lifecycle_1.Disposable {
+        constructor(_editor, _computer) {
+            super();
+            this._editor = _editor;
+            this._computer = _computer;
+            this._onResult = this._register(new event_1.Emitter());
+            this.onResult = this._onResult.event;
+            this._firstWaitScheduler = this._register(new async_1.RunOnceScheduler(() => this._triggerAsyncComputation(), 0));
+            this._secondWaitScheduler = this._register(new async_1.RunOnceScheduler(() => this._triggerSyncComputation(), 0));
+            this._loadingMessageScheduler = this._register(new async_1.RunOnceScheduler(() => this._triggerLoadingMessage(), 0));
+            this._state = 0 /* HoverOperationState.Idle */;
+            this._asyncIterable = null;
+            this._asyncIterableDone = false;
+            this._result = [];
+        }
+        dispose() {
+            if (this._asyncIterable) {
+                this._asyncIterable.cancel();
+                this._asyncIterable = null;
+            }
+            super.dispose();
+        }
+        get _hoverTime() {
+            return this._editor.getOption(60 /* EditorOption.hover */).delay;
+        }
+        get _firstWaitTime() {
+            return this._hoverTime / 2;
+        }
+        get _secondWaitTime() {
+            return this._hoverTime - this._firstWaitTime;
+        }
+        get _loadingMessageTime() {
+            return 3 * this._hoverTime;
+        }
+        _setState(state, fireResult = true) {
+            this._state = state;
+            if (fireResult) {
+                this._fireResult();
+            }
+        }
+        _triggerAsyncComputation() {
+            this._setState(2 /* HoverOperationState.SecondWait */);
+            this._secondWaitScheduler.schedule(this._secondWaitTime);
+            if (this._computer.computeAsync) {
+                this._asyncIterableDone = false;
+                this._asyncIterable = (0, async_1.createCancelableAsyncIterable)(token => this._computer.computeAsync(token));
+                (async () => {
+                    try {
+                        for await (const item of this._asyncIterable) {
+                            if (item) {
+                                this._result.push(item);
+                                this._fireResult();
+                            }
+                        }
+                        this._asyncIterableDone = true;
+                        if (this._state === 3 /* HoverOperationState.WaitingForAsync */ || this._state === 4 /* HoverOperationState.WaitingForAsyncShowingLoading */) {
+                            this._setState(0 /* HoverOperationState.Idle */);
+                        }
+                    }
+                    catch (e) {
+                        (0, errors_1.onUnexpectedError)(e);
+                    }
+                })();
+            }
+            else {
+                this._asyncIterableDone = true;
+            }
+        }
+        _triggerSyncComputation() {
+            if (this._computer.computeSync) {
+                this._result = this._result.concat(this._computer.computeSync());
+            }
+            this._setState(this._asyncIterableDone ? 0 /* HoverOperationState.Idle */ : 3 /* HoverOperationState.WaitingForAsync */);
+        }
+        _triggerLoadingMessage() {
+            if (this._state === 3 /* HoverOperationState.WaitingForAsync */) {
+                this._setState(4 /* HoverOperationState.WaitingForAsyncShowingLoading */);
+            }
+        }
+        _fireResult() {
+            if (this._state === 1 /* HoverOperationState.FirstWait */ || this._state === 2 /* HoverOperationState.SecondWait */) {
+                // Do not send out results before the hover time
+                return;
+            }
+            const isComplete = (this._state === 0 /* HoverOperationState.Idle */);
+            const hasLoadingMessage = (this._state === 4 /* HoverOperationState.WaitingForAsyncShowingLoading */);
+            this._onResult.fire(new HoverResult(this._result.slice(0), isComplete, hasLoadingMessage));
+        }
+        start(mode) {
+            if (mode === 0 /* HoverStartMode.Delayed */) {
+                if (this._state === 0 /* HoverOperationState.Idle */) {
+                    this._setState(1 /* HoverOperationState.FirstWait */);
+                    this._firstWaitScheduler.schedule(this._firstWaitTime);
+                    this._loadingMessageScheduler.schedule(this._loadingMessageTime);
+                }
+            }
+            else {
+                switch (this._state) {
+                    case 0 /* HoverOperationState.Idle */:
+                        this._triggerAsyncComputation();
+                        this._secondWaitScheduler.cancel();
+                        this._triggerSyncComputation();
+                        break;
+                    case 2 /* HoverOperationState.SecondWait */:
+                        this._secondWaitScheduler.cancel();
+                        this._triggerSyncComputation();
+                        break;
+                }
+            }
+        }
+        cancel() {
+            this._firstWaitScheduler.cancel();
+            this._secondWaitScheduler.cancel();
+            this._loadingMessageScheduler.cancel();
+            if (this._asyncIterable) {
+                this._asyncIterable.cancel();
+                this._asyncIterable = null;
+            }
+            this._result = [];
+            this._setState(0 /* HoverOperationState.Idle */, false);
+        }
+    }
+    exports.HoverOperation = HoverOperation;
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaG92ZXJPcGVyYXRpb24uanMiLCJzb3VyY2VSb290IjoiZmlsZTovLy9ob21lL3N0YXJrL3ZzY29kZS1zdGF0aWMtd2ViL3RoaXJkX3BhcnR5L3ZzY29kZS9zcmMvIiwic291cmNlcyI6WyJ2cy9lZGl0b3IvY29udHJpYi9ob3Zlci9icm93c2VyL2hvdmVyT3BlcmF0aW9uLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBOzs7Z0dBR2dHOzs7OztJQXFCaEcsSUFBVyxtQkFNVjtJQU5ELFdBQVcsbUJBQW1CO1FBQzdCLDZEQUFJLENBQUE7UUFDSix1RUFBUyxDQUFBO1FBQ1QseUVBQVUsQ0FBQTtRQUNWLG1GQUFtQixDQUFBO1FBQ25CLCtHQUFpQyxDQUFBO0lBQ2xDLENBQUMsRUFOVSxtQkFBbUIsS0FBbkIsbUJBQW1CLFFBTTdCO0lBRUQsSUFBa0IsY0FHakI7SUFIRCxXQUFrQixjQUFjO1FBQy9CLHlEQUFXLENBQUE7UUFDWCw2REFBYSxDQUFBO0lBQ2QsQ0FBQyxFQUhpQixjQUFjLDhCQUFkLGNBQWMsUUFHL0I7SUFFRCxJQUFrQixnQkFHakI7SUFIRCxXQUFrQixnQkFBZ0I7UUFDakMseURBQVMsQ0FBQTtRQUNULCtEQUFZLENBQUE7SUFDYixDQUFDLEVBSGlCLGdCQUFnQixnQ0FBaEIsZ0JBQWdCLFFBR2pDO0lBRUQsTUFBYSxXQUFXO1FBQ3ZCLFlBQ2lCLEtBQVUsRUFDVixVQUFtQixFQUNuQixpQkFBMEI7WUFGMUIsVUFBSyxHQUFMLEtBQUssQ0FBSztZQUNWLGVBQVUsR0FBVixVQUFVLENBQVM7WUFDbkIsc0JBQWlCLEdBQWpCLGlCQUFpQixDQUFTO1FBQ3ZDLENBQUM7S0FDTDtJQU5ELGtDQU1DO0lBRUQ7Ozs7Ozs7OztPQVNHO0lBQ0gsTUFBYSxjQUFrQixTQUFRLHNCQUFVO1FBY2hELFlBQ2tCLE9BQW9CLEVBQ3BCLFNBQTRCO1lBRTdDLEtBQUssRUFBRSxDQUFDO1lBSFMsWUFBTyxHQUFQLE9BQU8sQ0FBYTtZQUNwQixjQUFTLEdBQVQs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

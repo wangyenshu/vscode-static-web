@@ -1,0 +1,53 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+define(["require", "exports", "assert", "vs/base/test/common/utils", "vs/workbench/contrib/debug/node/terminals"], function (require, exports, assert, utils_1, terminals_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    suite('Debug - prepareCommand', () => {
+        (0, utils_1.ensureNoDisposablesAreLeakedInTestSuite)();
+        test('bash', () => {
+            assert.strictEqual((0, terminals_1.prepareCommand)('bash', ['{$} ('], false).trim(), '\\{\\$\\}\\ \\(');
+            assert.strictEqual((0, terminals_1.prepareCommand)('bash', ['hello', 'world', '--flag=true'], false).trim(), 'hello world --flag=true');
+            assert.strictEqual((0, terminals_1.prepareCommand)('bash', [' space arg '], false).trim(), '\\ space\\ arg\\');
+            assert.strictEqual((0, terminals_1.prepareCommand)('bash', ['{$} ('], true).trim(), '{$} (');
+            assert.strictEqual((0, terminals_1.prepareCommand)('bash', ['hello', 'world', '--flag=true'], true).trim(), 'hello world --flag=true');
+            assert.strictEqual((0, terminals_1.prepareCommand)('bash', [' space arg '], true).trim(), 'space arg');
+        });
+        test('bash - do not escape > and <', () => {
+            assert.strictEqual((0, terminals_1.prepareCommand)('bash', ['arg1', '>', '> hello.txt', '<', '<input.in'], false).trim(), 'arg1 > \\>\\ hello.txt < \\<input.in');
+        });
+        test('cmd', () => {
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', ['^!< '], false).trim(), '"^^^!^< "');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', ['hello', 'world', '--flag=true'], false).trim(), 'hello world --flag=true');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', [' space arg '], false).trim(), '" space arg "');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', ['"A>0"'], false).trim(), '"""A^>0"""');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', [''], false).trim(), '""');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', ['^!< '], true).trim(), '^!<');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', ['hello', 'world', '--flag=true'], true).trim(), 'hello world --flag=true');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', [' space arg '], true).trim(), 'space arg');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', ['"A>0"'], true).trim(), '"A>0"');
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', [''], true).trim(), '');
+        });
+        test('cmd - do not escape > and <', () => {
+            assert.strictEqual((0, terminals_1.prepareCommand)('cmd.exe', ['arg1', '>', '> hello.txt', '<', '<input.in'], false).trim(), 'arg1 > "^> hello.txt" < ^<input.in');
+        });
+        test('powershell', () => {
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', ['!< '], false).trim(), `& '!< '`);
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', ['hello', 'world', '--flag=true'], false).trim(), `& 'hello' 'world' '--flag=true'`);
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', [' space arg '], false).trim(), `& ' space arg '`);
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', ['"A>0"'], false).trim(), `& '"A>0"'`);
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', [''], false).trim(), `& ''`);
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', ['!< '], true).trim(), '!<');
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', ['hello', 'world', '--flag=true'], true).trim(), 'hello world --flag=true');
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', [' space arg '], true).trim(), 'space arg');
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', ['"A>0"'], true).trim(), '"A>0"');
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', [''], true).trim(), ``);
+        });
+        test('powershell - do not escape > and <', () => {
+            assert.strictEqual((0, terminals_1.prepareCommand)('powershell', ['arg1', '>', '> hello.txt', '<', '<input.in'], false).trim(), `& 'arg1' > '> hello.txt' < '<input.in'`);
+        });
+    });
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidGVybWluYWxzLnRlc3QuanMiLCJzb3VyY2VSb290IjoiZmlsZTovLy9ob21lL3N0YXJrL3ZzY29kZS1zdGF0aWMtd2ViL3RoaXJkX3BhcnR5L3ZzY29kZS9zcmMvIiwic291cmNlcyI6WyJ2cy93b3JrYmVuY2gvY29udHJpYi9kZWJ1Zy90ZXN0L25vZGUvdGVybWluYWxzLnRlc3QudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUE7OztnR0FHZ0c7Ozs7SUFPaEcsS0FBSyxDQUFDLHdCQUF3QixFQUFFLEdBQUcsRUFBRTtRQUNwQyxJQUFBLCtDQUF1QyxHQUFFLENBQUM7UUFFMUMsSUFBSSxDQUFDLE1BQU0sRUFBRSxHQUFHLEVBQUU7WUFDakIsTUFBTSxDQUFDLFdBQVcsQ0FDakIsSUFBQSwwQkFBYyxFQUFDLE1BQU0sRUFBRSxDQUFDLE9BQU8sQ0FBQyxFQUFFLEtBQUssQ0FBQyxDQUFDLElBQUksRUFBRSxFQUMvQyxpQkFBaUIsQ0FBQyxDQUFDO1lBQ3BCLE1BQU0sQ0FBQyxXQUFXLENBQ2pCLElBQUEsMEJBQWMsRUFBQyxNQUFNLEVBQUUsQ0FBQyxPQUFPLEVBQUUsT0FBTyxFQUFFLGFBQWEsQ0FBQyxFQUFFLEtBQUssQ0FBQyxDQUFDLElBQUksRUFBRSxFQUN2RSx5QkFBeUIsQ0FBQyxDQUFDO1lBQzVCLE1BQU0sQ0FBQyxXQUFXLENBQ2pCLElBQUEsMEJBQWMsRUFBQyxNQUFNLEVBQUUsQ0FBQyxhQUFhLENBQUMsRUFBRSxLQUFLLENBQUMsQ0FBQyxJQUFJLEVBQUUsRUFDckQsa0JBQWtCLENBQUMsQ0FBQztZQUVyQixNQUFNLENBQUMsV0FBVyxDQUNqQixJQUFBLDBCQUFjLEVBQUMsTUFBTSxFQUFFLENBQUMsT0FBTyxDQUFDLEVBQUUsSUFBSSxDQUFDLENBQUMsSUFBSSxFQUFFLEVBQzlDLE9BQU8sQ0FBQyxDQUFDO1lBQ1YsTUFBTSxDQUFDLFdBQVcsQ0FDakIsSUFBQSwwQkFBYyxFQUFDLE1BQU0sRUFBRSxDQUFDLE9BQU8sRUFBRSxPQUFP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
